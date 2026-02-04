@@ -5,9 +5,9 @@ app = FastAPI()
 
 @app.get("/", status_code=418)
 async def root():
-    return {"message": "Acorn Guide "}
+    return {"message": "Acorn Guide"}
 
-@app.get("/api/status")
+@app.get("/wifi/status")
 def status():
     return wifi.status()
 
