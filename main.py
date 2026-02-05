@@ -11,11 +11,11 @@ async def root():
 def status():
     return wifi.status()
 
-@app.get("/api/wifi/scan")
+@app.get("/wifi/scan")
 def scan():
     return wifi.scan()
 
-@app.post("/api/wifi/connect")
+@app.post("wifi/connect")
 def connect(req: dict):
     ssid = req.get("ssid")
     password = req.get("password")

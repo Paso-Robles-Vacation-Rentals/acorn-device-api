@@ -39,15 +39,28 @@ def status(iface:str|None=None) -> dict:
 def scan(iface:str=None) -> list[dict]:
     if not iface:
         iface = get_wifi_iface()
-    run(f"nmcli dev wifi rescan ifname {iface}")
+    run(f"sudo nmcli dev wifi rescan ifname {iface}")
     raw = run(
-        f"nmcli -f SSID,SIGNAL,SECURITY dev wifi list ifname {iface} --rescan yes --terse --fields SSID,SIGNAL,SECURITY")
+        f"nmcli -g SSID,SIGNAL,SECURITY dev wifi list ifname {iface} --rescan yes")
 
     nets = []
+    seen_ssids = set()
+
     for line in raw.splitlines():
         if not line.strip():
             continue
-        ssid, signal, security = line.split(":")
+
+        ssid, signal, security = line.split(":", 2)
+
+        # Skip blank SSIDs
+        if not ssid or ssid == "--":
+            continue
+
+        # Skip duplicates using a set
+        if ssid in seen_ssids:
+            continue
+
+        seen_ssids.add(ssid)
         nets.append({
             "ssid": ssid,
             "signal": int(signal),
