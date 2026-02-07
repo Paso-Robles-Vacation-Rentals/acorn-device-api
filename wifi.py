@@ -1,7 +1,10 @@
 import subprocess
+import time
+
 
 def run(cmd):
     return subprocess.check_output(cmd, shell=True, text=True).strip()
+
 
 def get_wifi_iface():
     """
@@ -15,24 +18,18 @@ def get_wifi_iface():
     raise RuntimeError("No Wi-Fi interfaces found")
 
 
-def status(iface:str|None=None) -> dict:
-    if not iface:
-        iface = get_wifi_iface()
-    out = run(f"nmcli -t -f DEVICE,STATE,CONNECTION,IP4.ADDRESS dev status")
+def status() -> dict:
+    out = run(f"nmcli -t -f TYPE,STATE,CONNECTION dev status")
     for line in out.splitlines():
-        dev, state, conn, ip = line.split(":")
-        if dev == iface:
+        dev_type, state, conn = line.split(":")
+        if dev_type == "wifi":
             return {
                 "connected": state == "connected",
-                "ssid": conn if conn != "--" else None,
-                "ip": ip if ip != "--" else None,
-                "state": state,
+                "ssid": conn if conn != "--" else None
             }
     return {
         "connected": False,
-        "ssid": None,
-        "ip": None,
-        "state": "unknown",
+        "ssid": None
     }
 
 
@@ -40,6 +37,9 @@ def scan(iface:str=None) -> list[dict]:
     if not iface:
         iface = get_wifi_iface()
     run(f"sudo nmcli dev wifi rescan ifname {iface}")
+
+    time.sleep(1.5)
+
     raw = run(
         f"nmcli -g SSID,SIGNAL,SECURITY dev wifi list ifname {iface} --rescan yes")
 
@@ -68,15 +68,17 @@ def scan(iface:str=None) -> list[dict]:
         })
     return nets
 
-def connect(ssid, psk=None, iface="wlp1s0") -> bool:
+
+def connect(ssid, password=None) -> bool:
     """
     Connect to a Wi-Fi network. If psk is None, assume open network.
     """
+    scan()
     try:
-        if psk:
-            run(f'nmcli dev wifi connect "{ssid}" password "{psk}" ifname {iface}')
+        if not password:
+            run(f'sudo nmcli dev wifi connect "{ssid}" password "{password}"')
         else:
-            run(f'nmcli dev wifi connect "{ssid}" ifname {iface}')
+            run(f'sudo nmcli dev wifi connect "{ssid}"')
         return True
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         return False

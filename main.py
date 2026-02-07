@@ -15,7 +15,7 @@ def status():
 def scan():
     return wifi.scan()
 
-@app.post("wifi/connect")
+@app.post("/wifi/connect")
 def connect(req: dict):
     ssid = req.get("ssid")
     password = req.get("password")
@@ -23,4 +23,14 @@ def connect(req: dict):
     if not ssid:
         raise HTTPException(400, "SSID required")
 
-    return wifi.connect(ssid, password)
+    if wifi.connect(ssid, password):
+        return wifi.status()
+    return HTTPException(status_code=502, detail="Connection Failed")
+
+    if not ssid:
+        raise HTTPException(400, "SSID required")
+
+    if wifi.connect(ssid, password):
+        return wifi.status()
+    return HTTPException(status_code=502, detail="Connection Failed")
+
