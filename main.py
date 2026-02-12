@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 import wifi
 
 app = FastAPI()
@@ -23,14 +23,6 @@ def connect(req: dict):
     if not ssid:
         raise HTTPException(400, "SSID required")
 
-    if wifi.connect(ssid, password):
-        return wifi.status()
-    return HTTPException(status_code=502, detail="Connection Failed")
-
-    if not ssid:
-        raise HTTPException(400, "SSID required")
-
-    if wifi.connect(ssid, password):
-        return wifi.status()
-    return HTTPException(status_code=502, detail="Connection Failed")
-
+    if not wifi.connect(ssid, password):
+        return HTTPException(status_code=502, detail="Connection Failed")
+    return Response(status_code=200)
