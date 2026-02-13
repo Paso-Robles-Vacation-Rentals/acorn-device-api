@@ -75,7 +75,7 @@ def connect(ssid, password=None) -> bool:
     """
     scan()
     try:
-        if not password:
+        if password:
             run(f'sudo nmcli dev wifi connect "{ssid}" password "{password}"')
         else:
             run(f'sudo nmcli dev wifi connect "{ssid}"')
